@@ -34,7 +34,8 @@
 <c></c>
 <l>NumberCircles := 0</l>
 <l>Rows := []</l>
-<l>Colums := []</l>
+<l>Columns := []</l>
+<l>Radii := []</l>
 <l>for I := 1 to Number by 1</l>
 <l>    select_obj (ContoursSplit, ObjectSelected, I)</l>
 <l>    get_contour_global_attrib_xld (ObjectSelected, 'cont_approx', Attrib)</l>
@@ -47,7 +48,8 @@
 <l>            set_tposition (WindowHandle, 1500+NumberCircles * 100,100)</l>
 <l>            write_string (WindowHandle, 'Row:'+Row +'  Col: '+Column)</l>
 <l>            Rows[NumberCircles-1] := Row</l>
-<l>            Colums[NumberCircles-1] := Column</l>
+<l>            Columns[NumberCircles-1] := Column</l>
+<l>            Radii[NumberCircles-1] := Radius</l>
 <l>            dev_set_color ('red')</l>
 <l>            dev_display (ContCircle)</l>
 <c>            </c>
@@ -58,10 +60,10 @@
 <c>*************************绘制坐标轴************************</c>
 <c>*圆点坐标</c>
 <l>RowCenter := Rows[0] </l>
-<l>ColCenter := Colums[0] </l>
+<l>ColCenter := Columns[0] </l>
 <c>*Y轴终点坐标</c>
 <l>RowY := Rows[1] </l>
-<l>ColY := Colums[1]</l>
+<l>ColY := Columns[1]</l>
 <c>*求两原点之间直线的角度</c>
 <l>line_position (RowCenter, ColCenter, RowY, ColY, RowMid, ColMid, Length, Phi)</l>
 <l>if(Phi &gt;= -rad(45))</l>
@@ -102,10 +104,9 @@
 <l>connection (SelectedRegions, ConnectedRegions)</l>
 <l>boundary (ConnectedRegions, RegionBorder, 'inner')</l>
 <l>dilation_circle (RegionBorder, RegionDilation, 3.5)</l>
-<c></c>
 <l>union1 (RegionDilation, RegionUnion)</l>
 <l>reduce_domain (Image, RegionUnion, ImageReduced)</l>
-<c></c>
+<c>*边缘检测</c>
 <l>edges_sub_pix (ImageReduced, Edges, 'canny', 1, 20, 40)</l>
 <l>segment_contours_xld (Edges, ContoursSplit, 'lines_circles', 5, 4, 2)</l>
 <l>select_contours_xld (ContoursSplit, SelectedContours, 'contour_length', 80, 500, -0.5, 0.5)</l>
@@ -116,10 +117,10 @@
 <l>count_obj (SortedContours, Number)</l>
 <l>dev_display (SortedContours)</l>
 <c>*焊点圆的圆心</c>
-<l>CenterRow := []</l>
-<l>CenterColumn := []</l>
-<l>CenterRow1 := []</l>
-<l>CenterColumn1 := []</l>
+<l>SolderCenterRow := []</l>
+<l>SolderCenterColumn := []</l>
+<l>SolderCenterRow1 := []</l>
+<l>SolderCenterColumn1 := []</l>
 <c>*焊点半径</c>
 <l>CenterRadius := []</l>
 <c>*最厚厚度</c>
@@ -144,7 +145,7 @@
 <l>    if (i &gt; 1)</l>
 <l>        exist := 0</l>
 <l>        for j := 0 to i - 2 by 1</l>
-<l>            distance_pp (Row, Column, CenterRow[j], CenterColumn[j], DistanceCenters)</l>
+<l>            distance_pp (Row, Column, SolderCenterRow[j], SolderCenterColumn[j], DistanceCenters)</l>
 <l>            if (DistanceCenters &lt; 20)</l>
 <l>                exist := 1</l>
 <l>            endif</l>
@@ -166,19 +167,19 @@
 <l>    else</l>
 <l>        disp_message (WindowHandle, 'R' + i + ' = ' + Radius$'.4', 'window', (i * 20) - 20, 270, 'white', 'false')</l>
 <l>    endif</l>
-<l>    CenterRow := [CenterRow,Row]</l>
-<l>    CenterColumn := [CenterColumn,Column]</l>
+<l>    SolderCenterRow := [SolderCenterRow,Row]</l>
+<l>    SolderCenterColumn := [SolderCenterColumn,Column]</l>
 <c>    *保存透视变换后的圆心坐标</c>
 <l>    affine_trans_point_2d (HomMat2D, Column, Row, Qx, Qy)</l>
-<l>    CenterColumn1[i] := Qx</l>
-<l>    CenterRow1[i] := Qy</l>
-<l>    CenterRadius[i] := Radius</l>
+<l>    SolderCenterColumn1[i] := Qx</l>
+<l>    SolderCenterRow1[i] := Qy</l>
+<l>    SolderCenterRadius[i] := Radius</l>
 <c>    *最大厚度、最小厚度、平均厚度</c>
 <l>    if(i%2 == 0 and i != 0)</l>
-<l>        AverThickness[i] := abs(CenterRadius[i] - CenterRadius[i-1]) / 2</l>
-<l>        distance_pp (CenterRow1[i], CenterColumn1[i], CenterRow1[i-1], CenterColumn1[i-1], Distance1)</l>
+<l>        AverThickness[i] := abs(SolderCenterRadius[i] - SolderCenterRadius[i-1]) / 2</l>
+<l>        distance_pp (SolderCenterRow1[i], SolderCenterColumn1[i], SolderCenterRow1[i-1], SolderCenterColumn1[i-1], Distance1)</l>
 <c>        *大圆半径 - 小圆半径 + 圆心距</c>
-<l>        MaxThickness[i] := CenterRadius[i-1] - CenterRadius[i] + Distance1</l>
+<l>        MaxThickness[i] := SolderCenterRadius[i-1] - SolderCenterRadius[i] + Distance1</l>
 <l>        MinThickness[i] := MaxThickness[i] - 2 * Distance1</l>
 <c>        *大圆半径 - 小圆半径 - 圆心距</c>
 <l>        *MinThicknsss[i] := CenterRadius[i-1] - CenterRadius[i] - Distance1</l>
@@ -210,14 +211,46 @@
 <l>write_string (WindowHandle, 'X')</l>
 <c></c>
 <c>*******************************划痕检测*************************</c>
+<l>dev_display (Image)</l>
+<l>threshold (Image, Regions, 32, 255)</l>
+<l>connection (Regions, ConnectedRegions)</l>
+<l>select_shape (ConnectedRegions, SelectedRegions, 'area', 'and', 2.894e+006, 4.89212e+006)</l>
+<l>erosion_rectangle1 (SelectedRegions, RegionErosion, 20, 20)</l>
+<l>shape_trans (RegionErosion, RegionTrans, 'convex')</l>
+<c>*缩放区域</c>
+<l>area_center (RegionTrans, Area, Row, Column)</l>
+<l>zoom_region (RegionTrans, RegionZoom, 0.97, 0.97)</l>
+<l>area_center (RegionZoom, Area1, Row1, Column1)</l>
+<c>*防止缩放区域位移</c>
+<l>move_region (RegionZoom, RegionMoved, Row - Row1, Column - Column1)</l>
+<c>*分割区域</c>
+<l>gen_circle (Circle, Rows[0], Columns[0], Radii[0]+5)</l>
+<l>gen_circle (Circle1, Rows[1], Columns[1], Radii[1]+5)</l>
+<l>paint_region (Circle1, Image, ImageResult, 0, 'fill')</l>
+<l>paint_region (Circle, ImageResult, ImageResult1, 0, 'fill')</l>
+<l>paint_region (RegionUnion, ImageResult1, ImageResult2, 0, 'fill')</l>
+<l>reduce_domain (ImageResult1, RegionMoved, ImageReduced)</l>
+<l>fill_up (Region, RegionFillUp)</l>
+<l>dilation_circle (RegionFillUp, RegionDilation1, 15)</l>
+<l>paint_region (RegionDilation1, ImageReduced, ImageResult3, 0, 'fill')</l>
+<c>*差分</c>
+<l>mean_image (ImageResult3, ImageMean, 5, 5)</l>
+<l>abs_diff_image (ImageMean, ImageResult3, ImageAbsDiff, 1)</l>
+<l>gauss_filter (ImageAbsDiff, ImageGauss, 3)</l>
+<l>threshold (ImageGauss, Regions1, 3, 30)</l>
+<l>connection (Regions1, ConnectedRegions1)</l>
+<l>select_shape (ConnectedRegions1, SelectedRegions1, ['area','circularity'], 'and', [0,0], [1148.57,1])</l>
+<l>erosion_circle (SelectedRegions1, RegionErosion1, 1)</l>
+<l>dilation_circle (RegionErosion1, RegionDilation2, 10)</l>
+<l>dilation_rectangle1 (RegionDilation2, RegionDilation3, 5,5)</l>
+<l>select_shape (RegionDilation3, SelectedRegions2, 'area', 'and', 808.47, 5000)</l>
+<l>union1 (SelectedRegions2, RegionUnion1)</l>
 <c></c>
-<c></c>
-<l>mean_image (Image, ImageMean1, 7, 7)</l>
-<l>abs_diff_image (Image, ImageMean1, ImageAbsDiff, 1)</l>
-<l>threshold (ImageAbsDiff, Regions1, 5, 50)</l>
-<l>closing_circle (Regions1, RegionClosing, 20)</l>
-<l>connection (RegionClosing, ConnectedRegions1)</l>
-<l>select_shape (ConnectedRegions1, SelectedRegions1, 'area', 'and', 0, 3246.75)</l>
+<c>*边缘检测</c>
+<l>*edges_sub_pix (ImageReduced1, Edges1, 'sobel_fast', 1, 5, 10)</l>
+<c>*连接断线和曲线</c>
+<l>*union_cotangential_contours_xld (Edges1, UnionContours, 0, 1, rad(180), 100, 100, 2, 'attr_forget')</l>
+<l>*union_adjacent_contours_xld (Edges1, UnionContours, 30, 2, 'attr_keep')</l>
 <c></c>
 </body>
 <docu id="main">
