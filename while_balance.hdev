@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<hdevelop file_version="1.2" halcon_version="18.11.1.0">
+<procedure name="main">
+<interface/>
+<body>
+<l>dev_close_window ()</l>
+<l>read_image (Image, 'C:/Users/soft/Desktop/测试图像BMP/15-58-13-217_01-UR-82.bmp')</l>
+<l>dev_open_window_fit_image (Image, 0, 0, -1, -1, WindowHandle)</l>
+<l>dev_display (Image)</l>
+<l>get_image_size (Image, Width, Height)</l>
+<l>decompose3 (Image, ImageR, ImageG, ImageB)</l>
+<c>*各分量强度</c>
+<l>get_domain (ImageR, Domain)</l>
+<l>intensity (Domain, ImageR, MeanRed, DeviationRed)</l>
+<l>get_domain (ImageG, Domain)</l>
+<l>intensity (Domain, ImageG, MeanGreen, DeviationGreen)</l>
+<l>get_domain (ImageB, Domain)</l>
+<l>intensity (Domain, ImageB, MeanBlue, DeviationBlue)</l>
+<c>*求出个通道所占增益</c>
+<l>K := (MeanRed + MeanGreen + MeanBlue) / 3.0</l>
+<l>Kr := K / MeanRed</l>
+<l>Kg := K / MeanGreen</l>
+<l>Kb := K / MeanBlue</l>
+<c>*更新白平衡后的各通道值White Balance</c>
+<l>scale_image (ImageR, ImageScaledRed, Kr, 0)</l>
+<l>scale_image (ImageG, ImageScaledGreen, Kg, 0)</l>
+<l>scale_image (ImageB, ImageScaledBlue, Kb, 0)</l>
+<l>compose3(ImageScaledRed, ImageScaledGreen, ImageScaledBlue, Multichannel0)</l>
+<c>*亮度平衡</c>
+<l>illuminate (Multichannel0, ImageIlluminate, 7, 7, 0.7)</l>
+<l>dev_display (ImageIlluminate)</l>
+<l>stop()</l>
+<l>dev_clear_window ()</l>
+<c>*求光学中心</c>
+<l>rgb1_to_gray (Image, GrayImage)</l>
+<l>threshold (GrayImage, Regions, K, 255)</l>
+<l>opening_circle (Regions, RegionOpening, 1)</l>
+<l>reduce_domain (Image, Regions, ImageReduced)</l>
+<l>decompose3 (ImageReduced, ImageR1, ImageG1, ImageB1)</l>
+<l>intensity (RegionOpening, ImageR1, MeanRed1, DeviationRed)</l>
+<l>intensity (RegionOpening, ImageG1, MeanGreen1, DeviationGreen)</l>
+<l>intensity (RegionOpening, ImageB1, MeanBlue1, DeviationBlue)</l>
+<c></c>
+<l>K1 := (MeanRed1 + MeanGreen1 + MeanBlue1) / 3.0</l>
+<l>threshold (ImageR1, Region, K1, 255)</l>
+<l>dilation_circle (Region, RegionDilation, 3.5)</l>
+<l>erosion_circle (RegionDilation, RegionErosion, 3.5)</l>
+<l>connection (RegionErosion, ConnectedRegions)</l>
+<l>select_shape (ConnectedRegions, SelectedRegions, 'area', 'and', 35807.1, 200000)</l>
+<l>dev_clear_window ()</l>
+<l>dev_display (Image)</l>
+<l>shape_trans (SelectedRegions, RegionTrans, 'outer_circle')</l>
+<c>*读取RAW文件</c>
+<l>read_sequence (Image1, 0, Width, Height, 0, 0, Width, Height, 'short', 'MSBFirst', 'LSBFirst', 'short', 1, 'C:/Users/soft/Desktop/测试图像BMP/14-09-59-800_01_BR_84.raw')</l>
+<l>cfa_to_rgb (Image1, RGBImage, 'bayer_gb', 'bilinear')</l>
+</body>
+<docu id="main">
+<parameters/>
+</docu>
+</procedure>
+</hdevelop>
