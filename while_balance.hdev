@@ -4,7 +4,7 @@
 <interface/>
 <body>
 <l>dev_close_window ()</l>
-<l>read_image (Image, 'C:/Users/soft/Desktop/测试图像BMP/15-58-13-217_01-UR-82.bmp')</l>
+<l>read_image (Image, 'C:/Users/soft/Desktop/learning/15-58-13-217_01-UR-82.bmp')</l>
 <l>dev_open_window_fit_image (Image, 0, 0, -1, -1, WindowHandle)</l>
 <l>dev_display (Image)</l>
 <l>get_image_size (Image, Width, Height)</l>
@@ -51,8 +51,8 @@
 <l>dev_display (Image)</l>
 <l>shape_trans (SelectedRegions, RegionTrans, 'outer_circle')</l>
 <c>*读取RAW文件</c>
-<l>read_sequence (Image1, 0, Width, Height, 0, 0, Width, Height, 'short', 'MSBFirst', 'LSBFirst', 'short', 1, 'C:/Users/soft/Desktop/测试图像BMP/14-09-59-800_01_BR_84.raw')</l>
-<l>cfa_to_rgb (Image1, RGBImage, 'bayer_gb', 'bilinear')</l>
+<l>read_sequence (Image1, 0, Width, Height, 0, 0, Width, Height, 'short', 'MSBFirst', 'LSBFirst', 'short', 1, 'C:/Users/soft/Desktop/learning/14-09-59-800_01_BR_84.raw')</l>
+<l>cfa_to_rgb (Image1, RGBImage, 'bayer_gb', 'bilinear_dir')</l>
 </body>
 <docu id="main">
 <parameters/>
