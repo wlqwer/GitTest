@@ -4,34 +4,185 @@
 <interface/>
 <body>
 <l>dev_close_window ()</l>
-<l>read_image (Image, 'C:/Users/soft/Desktop/work/测试图像BMP/15-58-13-217_01-UR-82.bmp')</l>
-<l>get_image_size (Image, Width, Height)</l>
+<l>read_image (Image, 'C:/Users/soft/Desktop/learning/15-58-13-217_01-UR-82.bmp')</l>
+<l>*read_image (Image, 'C:/Users/soft/Desktop/测试图像BMP/15-58-13-217_01-UR-82 - 副本.bmp')</l>
+<c></c>
 <l>dev_open_window_fit_image (Image, 0, 0, -1, -1, WindowHandle)</l>
 <l>dev_display (Image)</l>
-<c></c>
-<c>*将图像进行通道分解，分别转换为三个通道的RGB图像</c>
-<l>decompose3 (Image, Red, Green, Blue)</l>
-<c></c>
-<c>*实现白平衡算法中的灰度世界法，能有效改善图像发红/发蓝/发绿的现象</c>
-<c>*取RGB各个通道的平均值</c>
-<c>*获取定义域</c>
-<l>get_domain (Red, Domain)</l>
-<c>*求均值和方差</c>
-<l>intensity (Domain, Red, MeanRed, DeviationRed)</l>
-<l>get_domain (Green, Domain)</l>
-<l>intensity (Domain, Green, MeanGreen, DeviationGreen)</l>
-<l>get_domain (Blue, Domain)</l>
-<l>intensity (Domain, Blue, MeanBlue, DeviationBlue)</l>
-<c>*求出各通道所占增益</c>
+<l>get_image_size (Image, Width, Height)</l>
+<l>decompose3 (Image, ImageR, ImageG, ImageB)</l>
+<c>*各分量强度</c>
+<l>get_domain (ImageR, Domain)</l>
+<l>intensity (Domain, ImageR, MeanRed, DeviationRed)</l>
+<l>get_domain (ImageG, Domain)</l>
+<l>intensity (Domain, ImageG, MeanGreen, DeviationGreen)</l>
+<l>get_domain (ImageB, Domain)</l>
+<l>intensity (Domain, ImageB, MeanBlue, DeviationBlue)</l>
+<c>*求出个通道所占增益</c>
 <l>K := (MeanRed + MeanGreen + MeanBlue) / 3.0</l>
 <l>Kr := K / MeanRed</l>
 <l>Kg := K / MeanGreen</l>
 <l>Kb := K / MeanBlue</l>
 <c>*更新白平衡后的各通道值White Balance</c>
-<l>scale_image (Red, ImageScaledRed, Kr, 0)</l>
-<l>scale_image (Green, ImageScaledGreen, Kg,0)</l>
-<l>scale_image (Blue, ImageScaledBlue, Kb, 0)</l>
+<l>scale_image (ImageR, ImageScaledRed, Kr, 0)</l>
+<l>scale_image (ImageG, ImageScaledGreen, Kg, 0)</l>
+<l>scale_image (ImageB, ImageScaledBlue, Kb, 0)</l>
 <l>compose3(ImageScaledRed, ImageScaledGreen, ImageScaledBlue, Multichannel0)</l>
+<c>*亮度平衡</c>
+<l>illuminate (Multichannel0, ImageIlluminate, 7, 7, 0.7)</l>
+<l>dev_display (ImageIlluminate)</l>
+<l>stop()</l>
+<l>dev_clear_window ()</l>
+<c>*求光学中心 阈值分割 </c>
+<l>rgb1_to_gray (Image, GrayImage)</l>
+<l>threshold (GrayImage, Regions, K, 255)</l>
+<l>opening_circle (Regions, RegionOpening, 1)</l>
+<l>reduce_domain (Image, Regions, ImageReduced)</l>
+<l>decompose3 (ImageReduced, ImageR1, ImageG1, ImageB1)</l>
+<c>**********************************************</c>
+<c>*参考方差值</c>
+<l>Var :=  1.5</l>
+<l>pi := 3.1415926 </l>
+<l>Radii := []</l>
+<l>RegionTrans1 := Domain</l>
+<l>for i:=1 to 100 by 1</l>
+<l>    intensity (Domain, GrayImage, MeanGray, DeviationGray)</l>
+<l>    threshold (GrayImage, RegionGray, MeanGray, 255)</l>
+<l>    Domain := RegionGray</l>
+<l>    shape_trans (Domain, RegionTrans2, 'outer_circle')</l>
+<c>    *求圆面积</c>
+<l>    area_center (RegionTrans2, Area1, Row1, Column1)</l>
+<c>    *求圆半径</c>
+<l>    Radii[i] := sqrt(Area1 / pi)</l>
+<c>    *求</c>
+<l>    if(DeviationGray &lt; Var)</l>
+<l>        break</l>
+<l>    endif</l>
+<l>endfor</l>
+<c>*最小圆半径</c>
+<l>opening_circle (Domain, RegionOpening1, 1)</l>
+<l>shape_trans (RegionOpening1, RegionTrans, 'outer_circle')</l>
+<l>area_center (RegionTrans, Area, Row, Column)</l>
+<l>distance_pp (0, 0, Row, Column, Distance1)</l>
+<l>Radii[0] := Distance1</l>
+<c>*数组反序 半径从大到小</c>
+<l>Radii := inverse(Radii)</l>
+<l>dev_display (Image)</l>
+<l>dev_display (RegionTrans)</l>
+<l>stop()</l>
+<c>****************求取拟合半径和灰度值********************</c>
+<c>*迭代次数</c>
+<l>*tuple_length (Radii, t)</l>
+<c>*求步长长度</c>
+<l>distance_pp (0, 0, Row, Column, Distance)</l>
+<l>t := 50</l>
+<l>Step := Distance / t</l>
+<c>*求圆点与质心直线的角度</c>
+<l>line_orientation (0, 0, Row, Column, Phi)</l>
+<c>*质心灰度值</c>
+<l>get_grayval (GrayImage, Row, Column, GrayvalCenter)</l>
+<c>*创建一个空图像</c>
+<l>gen_image_const (EmptyImage, 'byte', Width, Height)</l>
+<c>*初始化一个空区域</c>
+<l>difference (RegionTrans, RegionTrans, TempRegion)</l>
+<c>*求取区域均值</c>
+<l>get_domain (GrayImage, Domain)</l>
+<l>MeanRegion := [] </l>
+<l>for i:= 1 to t by 1</l>
+<l>    CircleRow := Row - Step * i * sin(-Phi)</l>
+<l>    CircleColumn := Column - Step * i * cos(-Phi)</l>
+<c>    *创建一个圆形区域</c>
+<l>    gen_circle (Circle, Row, Column, Step*i)</l>
+<c>    *获取对角线与圆相交点处的灰度值</c>
+<l>    *get_grayval (GrayImage, CircleRow, CircleColumn, Grayval)</l>
+<c>    *求本次区域与上次区域的差集</c>
+<l>    difference (Circle, TempRegion, RegionDifference)</l>
+<c>    *如果区域超出图像边界，先求上个区域与图像区域的差集再取圆环区域的交集</c>
+<l>    if(Step*i &gt; Width/2 or Step * i &gt; Height/2)</l>
+<l>        difference (Domain, TempRegion, RegionDifference1)</l>
+<l>        intersection (RegionDifference1, RegionDifference, RegionDifference)</l>
+<l>    endif</l>
+<c>    *求区域内灰度均值</c>
+<l>    intensity (RegionDifference, GrayImage, Mean, Deviation)</l>
+<c>    *保存上个区域</c>
+<l>    TempRegion := Circle</l>
+<l>    MeanRegion[i-1] := Mean</l>
+<l>    Radii[i-1] := Step * i</l>
+<l>endfor</l>
+<l>*add_image (EmptyImage, GrayImage, ImageResult1, 1, 0)</l>
+<c>******************曲线拟合**************</c>
+<c>*半径作为X轴坐标，灰度均值作为Y坐标</c>
+<l>dev_set_color ('slate blue')</l>
+<l>gen_cross_contour_xld (Cross, MeanRegion, Radii, 25, 0.785398)</l>
+<l>create_matrix (|Radii|, 3, 1.0, MatrixA) </l>
+<l>create_matrix (|Radii|, 1, Radii, MatrixACol1)</l>
+<l>create_matrix (|Radii|, 1, Radii * Radii, MatrixACol0)</l>
+<l>set_sub_matrix (MatrixA, MatrixACol1, 0, 1)</l>
+<l>set_sub_matrix (MatrixA, MatrixACol0, 0, 0)</l>
+<l>create_matrix (|Radii|, 1, MeanRegion, MatrixB)</l>
+<l>solve_matrix (MatrixA, 'general', 0, MatrixB, MatrixX)</l>
+<c>*绘制曲线</c>
+<l>Sequence := [0:3000]</l>
+<l>get_value_matrix (MatrixX, 0, 0, A)</l>
+<l>get_value_matrix (MatrixX, 1, 0, B)</l>
+<l>get_value_matrix (MatrixX, 2, 0, C)</l>
+<c>*y = A*(x^2) + B*x + C</c>
+<l>Distances := A * Sequence * Sequence + B * Sequence + C</l>
+<l>gen_contour_polygon_xld (Contour, Distances, Sequence)</l>
+<c>*******************直线拟合***********************</c>
+<c>*最小二乘法直线拟合</c>
+<l>tuple_length(Radii,len)</l>
+<l>create_matrix(len,1,MeanGray,y)</l>
+<l>create_matrix(len,2,1,x)</l>
+<l>set_value_matrix(x, [0:len-1], gen_tuple_const(len, 0),Radii)</l>
+<c> </c>
+<c>* XT 代表X的转置 inv(*)代表*的逆</c>
+<c>* x beta = y</c>
+<c>* xT x beta = xT y</c>
+<c>* beta = inv( xT x) xT y</c>
+<c> </c>
+<l>mult_matrix(x,x,'ATB',xtx)</l>
+<l>mult_matrix(x,y,'ATB',xty)</l>
+<l>invert_matrix(xtx,'general', 0, invxtx)</l>
+<l>mult_matrix(invxtx,xty,'AB', beta)</l>
+<l>get_full_matrix(beta, Values) </l>
+<c>*绘制直线</c>
+<l>Newy:=Values[0] * [0,3000] + Values[1]</l>
+<l>gen_contour_polygon_xld(Contour1, Newy, [0,3000])</l>
+<l>dev_set_color ('orange')</l>
+<l>dev_display (Contour)</l>
+<l>dev_set_color ('pink')</l>
+<l>dev_display (Contour)</l>
+<c>**********************光照矫正*****************</c>
+<c>*初始化一个空区域</c>
+<l>difference (RegionTrans, RegionTrans, TempRegion)</l>
+<c>*创建一个空图像</c>
+<l>gen_image_const (AddImage, 'byte', Width, Height)</l>
+<c>*创建一个空图像</c>
+<l>gen_image_const (SubImage, 'byte', Width, Height)</l>
+<l>Iteration := |Radii|</l>
+<l>for i := 1 to Iteration by 1</l>
+<l>    gen_circle (Circle1, Row, Column, Radii[Iteration-i])</l>
+<l>    *difference (TempRegion, Circle1, RegionDifference)</l>
+<l>    *TempRegion := Circle1</l>
+<c>     *曲线</c>
+<l>     *n := A * Radii[Iteration-i] * Radii[Iteration-i] + B * Radii[Iteration-i] + C</l>
+<c>      *直线</c>
+<l>     val := Values[0] * Radii[Iteration-i] + Values[1]</l>
+<l>     n := val - MeanRegion[Iteration-i]</l>
+<l>    if(n &gt;= 0)</l>
+<l>        paint_region (Circle1, AddImage, AddImage, n, 'fill')</l>
+<l>    endif</l>
+<l>    if(n &lt; 0)</l>
+<l>        paint_region (Circle1, SubImage, SubImage, abs(n), 'fill')</l>
+<l>    endif</l>
+<l>endfor</l>
+<l>add_image (GrayImage, AddImage, ImageResult, 1, 0)</l>
+<l>sub_image(ImageResult, SubImage, ImageSub, 1, 0)</l>
+<c></c>
+<c>**********读取Raw文件**************</c>
+<l>read_sequence (Image1, 0, Width, Height, 0, 0, Width, Height, 'short', 'MSBFirst', 'LSBFirst', 'long', 1, 'C:/Users/soft/Desktop/learning/14-09-59-800_01_BR_84.raw')</l>
+<l>cfa_to_rgb (Image1, RGBImage, 'bayer_bg', 'bilinear_dir')</l>
 <c></c>
 <c></c>
 <c></c>
