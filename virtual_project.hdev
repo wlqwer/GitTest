@@ -6,10 +6,10 @@
 <l>dev_close_window ()</l>
 <l>dev_update_window ('off')</l>
 <c></c>
-<l>read_image (Image, 'C:/Users/soft/Desktop/tongzhouW196.bmp')</l>
+<l>read_image (Image, 'C:/Users/soft/Desktop/tongzhouW332.bmp')</l>
 <l>get_image_size (Image, Width, Height)</l>
 <c>*窗口显示</c>
-<l>dev_open_window_fit_size (0, 0, Width, Width, -1, -1, WindowHandle)</l>
+<l>dev_open_window_fit_size (0, 0, Width, Height, -1, -1, WindowHandle)</l>
 <l>set_display_font (WindowHandle, 14, 'mono', 'true', 'false')</l>
 <l>dev_set_draw ('margin')</l>
 <l>dev_set_line_width (3)</l>
@@ -67,26 +67,25 @@
 <c>*求两原点之间直线的角度</c>
 <l>line_position (RowCenter, ColCenter, RowY, ColY, RowMid, ColMid, Length, Phi)</l>
 <l>if(Phi &gt;= -rad(45))</l>
+<c>    *X轴终点坐标</c>
 <l>    RowX := RowY</l>
 <l>    ColX := ColY</l>
+<c>    *Y轴终点坐标</c>
 <l>    RowY :=  RowCenter - Length * cos(Phi)</l>
 <l>    ColY := ColCenter - Length * sin(Phi)</l>
 <l>    AffinePhi := Phi</l>
 <l>endif</l>
 <l>if(Phi &lt; -rad(45))</l>
+<l>    RowX := RowCenter - Length * cos(Phi)</l>
+<l>    ColX := ColCenter - Length * sin(Phi)</l>
 <l>    AffinePhi := -rad(Phi)</l>
 <l>endif</l>
 <l>disp_cross (WindowHandle, RowCenter, ColCenter, 60, rad(Phi))</l>
 <l>disp_arrow (WindowHandle, RowCenter, ColCenter, RowY, ColY, 5)</l>
 <l>set_tposition (WindowHandle, RowY, ColY)</l>
 <l>write_string (WindowHandle, 'Y')</l>
-<l>dev_set_color ('red')</l>
-<l>*angle_ll (RowCenter, ColCenter, RowY, ColY, RowCenter, ColCenter, RowCenter + 10, ColCenter + 10, Angle)</l>
-<c>*X轴终点坐标</c>
-<l>RowX := RowCenter - Length * cos(Phi)</l>
-<l>ColX := ColCenter - Length * sin(Phi)</l>
+<l>dev_set_color ('blue')</l>
 <c>*求两直线间的角度</c>
-<l>*angle_ll (RowCenter, ColCenter, RowX, ColX, RowCenter, ColCenter, RowX, ColX, Angle)</l>
 <l>disp_arrow (WindowHandle, RowCenter, ColCenter, RowX, ColX, 5)</l>
 <l>set_tposition (WindowHandle, RowX, ColX)</l>
 <l>write_string (WindowHandle, 'X')</l>
@@ -187,7 +186,7 @@
 <c>    *相对坐标点</c>
 <l>endfor</l>
 <c></c>
-<c>****相对坐标点*****</c>
+<c>****相对坐标点(截距法)*****</c>
 <l>*RelRow := []</l>
 <l>*RelCol := []</l>
 <l>*for i := 0 to Number-1 by 1</l>
@@ -205,12 +204,17 @@
 <l>disp_arrow (WindowHandle, RowCenter, ColCenter, RowY, ColY, 5)</l>
 <l>set_tposition (WindowHandle, RowY, ColY)</l>
 <l>write_string (WindowHandle, 'Y')</l>
-<c></c>
+<l>dev_set_color ('blue')</l>
 <l>disp_arrow (WindowHandle, RowCenter, ColCenter, RowX, ColX, 5)</l>
 <l>set_tposition (WindowHandle, RowX, ColX)</l>
 <l>write_string (WindowHandle, 'X')</l>
-<c></c>
+<l>stop()</l>
 <c>*******************************划痕检测*************************</c>
+<l>dev_clear_window ()</l>
+<l>dev_close_window ()</l>
+<l>dev_open_window_fit_size (0, 0, Width, Height, -1, -1, WindowHandle1)</l>
+<l>set_display_font (WindowHandle1, 14, 'mono', 'true', 'false')</l>
+<l>dev_set_line_width (3)</l>
 <l>dev_display (Image)</l>
 <l>threshold (Image, Regions, 32, 255)</l>
 <l>connection (Regions, ConnectedRegions)</l>
@@ -240,18 +244,52 @@
 <l>threshold (ImageGauss, Regions1, 3, 30)</l>
 <l>connection (Regions1, ConnectedRegions1)</l>
 <l>select_shape (ConnectedRegions1, SelectedRegions1, ['area','circularity'], 'and', [0,0], [1148.57,1])</l>
-<l>erosion_circle (SelectedRegions1, RegionErosion1, 1)</l>
+<l>union1 (SelectedRegions1, RegionUnion2)</l>
+<l>erosion_circle (RegionUnion2, RegionErosion1, 1)</l>
 <l>dilation_circle (RegionErosion1, RegionDilation2, 10)</l>
 <l>dilation_rectangle1 (RegionDilation2, RegionDilation3, 5,5)</l>
-<l>select_shape (RegionDilation3, SelectedRegions2, 'area', 'and', 808.47, 5000)</l>
+<l>connection (RegionDilation3, ConnectedRegions2)</l>
+<l>select_shape (ConnectedRegions2, SelectedRegions2, 'area', 'and', 2245.26, 6356.64)</l>
+<l>shape_trans (SelectedRegions2, RegionTrans1, 'rectangle2')</l>
+<c>*划痕长度</c>
 <l>union1 (SelectedRegions2, RegionUnion1)</l>
-<c></c>
+<l>reduce_domain (ImageGauss, RegionUnion1, ImageReduced1)</l>
+<l>scale_image (ImageReduced1, ImageScaled, 36.4286, 0)</l>
+<l>threshold (ImageScaled, Regions2, 74, 255)</l>
+<l>closing_circle (Regions2, RegionClosing, 13.5)</l>
+<l>skeleton (RegionClosing, Skeleton)</l>
+<l>gen_contours_skeleton_xld (Skeleton, Contours, 1, 'filter')</l>
+<l>union_cotangential_contours_xld (Contours, UnionContours, 0, 100, rad(90), 80, 80, 5, 'attr_forget')</l>
+<l>union_adjacent_contours_xld (UnionContours, UnionContours1, 100, 3, 'attr_keep')</l>
+<l>select_contours_xld (UnionContours1, SelectedContours1, 'contour_length', 0.5, 200, -0.5, 0.5)</l>
+<c>*获取划痕中心点和长度</c>
+<l>count_obj (SelectedContours1, Number1)</l>
+<l>area_center_xld (SelectedContours1, Area2, Row3, Column3, PointOrder1)</l>
+<l>length_xld (SelectedContours1, Length1)</l>
+<l>dev_clear_window ()</l>
+<l>dev_set_color('yellow')</l>
+<l>dev_display (Image)</l>
+<l>dev_display(RegionTrans1)</l>
+<l>for i := 0 to Number1-1 by 1</l>
+<l>    disp_message (WindowHandle1, 'Length:' + Length1[i], 'image', Row3[i]+40, Column3[i], 'black', 'true')</l>
+<l>endfor</l>
+<l>stop()</l>
 <c>*边缘检测</c>
 <l>*edges_sub_pix (ImageReduced1, Edges1, 'sobel_fast', 1, 5, 10)</l>
 <c>*连接断线和曲线</c>
 <l>*union_cotangential_contours_xld (Edges1, UnionContours, 0, 1, rad(180), 100, 100, 2, 'attr_forget')</l>
 <l>*union_adjacent_contours_xld (Edges1, UnionContours, 30, 2, 'attr_keep')</l>
 <c></c>
+<c>**************************重新绘制坐标轴*********************</c>
+<l>dev_set_color ('red')</l>
+<l>disp_cross (WindowHandle1, RowCenter, ColCenter, 60, rad(Phi))</l>
+<l>disp_arrow (WindowHandle1, RowCenter, ColCenter, RowY, ColY, 5)</l>
+<l>set_tposition (WindowHandle1, RowY, ColY)</l>
+<l>write_string (WindowHandle1, 'Y')</l>
+<l>dev_set_color ('blue')</l>
+<l>disp_arrow (WindowHandle1, RowCenter, ColCenter, RowX, ColX, 5)</l>
+<l>set_tposition (WindowHandle1, RowX, ColX)</l>
+<l>write_string (WindowHandle1, 'X')</l>
 </body>
 <docu id="main">
 <parameters/>
