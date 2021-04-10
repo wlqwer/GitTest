@@ -4,8 +4,15 @@
 <interface/>
 <body>
 <l>dev_close_window ()</l>
-<l>read_image (Image, 'C:/Users/soft/Desktop/learning/15-58-13-217_01-UR-82.bmp')</l>
+<l>*read_image (Image, 'C:/Users/soft/Desktop/测试图像BMP/15-58-13-217_01-UR-82.bmp')</l>
 <l>*read_image (Image, 'C:/Users/soft/Desktop/测试图像BMP/15-58-13-217_01-UR-82 - 副本.bmp')</l>
+<c>**********读取Raw文件**************</c>
+<l>Width := 4208</l>
+<l>Height := 3120</l>
+<l>read_sequence (Image1, 0, Width, Height, 0, 0, Width, Height, 'short', 'MSBFirst', 'LSBFirst', 'short', 1, 'C:/Users/soft/Desktop/测试图像BMP/14-09-59-800_01_BR_84.raw')</l>
+<l>cfa_to_rgb (Image1, RGBImage, 'bayer_rg', 'bilinear')</l>
+<l>scale_image (RGBImage, ImageScaled, 0.25, 0)</l>
+<l>convert_image_type (ImageScaled, Image, 'byte')</l>
 <c></c>
 <l>dev_open_window_fit_image (Image, 0, 0, -1, -1, WindowHandle)</l>
 <l>dev_display (Image)</l>
@@ -73,6 +80,8 @@
 <c>****************求取拟合半径和灰度值********************</c>
 <c>*迭代次数</c>
 <l>*tuple_length (Radii, t)</l>
+<l>Row := Height / 2</l>
+<l>Column := Width / 2</l>
 <c>*求步长长度</c>
 <l>distance_pp (0, 0, Row, Column, Distance)</l>
 <l>t := 50</l>
@@ -179,10 +188,6 @@
 <l>endfor</l>
 <l>add_image (GrayImage, AddImage, ImageResult, 1, 0)</l>
 <l>sub_image(ImageResult, SubImage, ImageSub, 1, 0)</l>
-<c></c>
-<c>**********读取Raw文件**************</c>
-<l>read_sequence (Image1, 0, Width, Height, 0, 0, Width, Height, 'short', 'MSBFirst', 'LSBFirst', 'long', 1, 'C:/Users/soft/Desktop/learning/14-09-59-800_01_BR_84.raw')</l>
-<l>cfa_to_rgb (Image1, RGBImage, 'bayer_bg', 'bilinear_dir')</l>
 <c></c>
 <c></c>
 <c></c>
